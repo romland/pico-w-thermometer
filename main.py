@@ -25,6 +25,7 @@ from machine import Pin, Timer
 
 # Configuration =====================================
 REPORT_INTERVAL_MINUTES = 15         # How often to report to HomeAssistant (HA)
+WIFI_COUNTRY_ISO_CODE = "NL"         # You will want to change this to US/GB/or what-have-you
 SSID =  "YOUR_SSID"                  # WiFi network name
 SSID_KEY = "YOUR_SECRET"             # WiFi network password
 
@@ -50,7 +51,7 @@ def init():
     led = Pin("LED", Pin.OUT)
     
     # Set country for additional WiFi frequencies
-    rp2.country('NL')
+    rp2.country(WIFI_COUNTRY_ISO_CODE)
     
     # Find thermometer
     ds_pin = machine.Pin(16)
