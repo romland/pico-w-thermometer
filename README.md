@@ -31,7 +31,11 @@ As you can see in the picture below, I soldered on males to place it on the brea
 schematic below it is assumed that you soldered on females or simply soldered the wires directly to 
 the board (they're cheap enough).
 
-![](img/solder-points.jpg)
+_The three solder points_:
+![Solder points](img/solder-points.jpg)
+
+_From the other side_:
+![The other side](img/breadboard.jpg)
 
 
 # Schematic
