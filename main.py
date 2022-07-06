@@ -103,7 +103,7 @@ def getTemperature():
 #   https://www.home-assistant.io/integrations/http/
 def reportTemperature(temp):
     data = {
-        "state": str(temp),
+        "state": temp,
         "attributes" : {
             "friendly_name" : HA_SENSOR_NAME
         }
