@@ -29,8 +29,8 @@ WIFI_COUNTRY_ISO_CODE = "NL"         # You will want to change this to US/GB/or 
 SSID =  "YOUR_SSID"                  # WiFi network name
 SSID_KEY = "YOUR_SECRET"             # WiFi network password
 
-# Create a Long-Lived Access Tokens in your HomeAssistant UI at the bottom of your profile, paste below.
-HA_LONG_LIVED_TOKEN = "A_REALLY_LONG_TOKEN"
+# Create a Long-Lived Access Tokens in your HomeAssistant UI (bottom of your profile), paste it below.
+HA_LONG_LIVED_TOKEN = "A_REALLY_LONG_TOKEN_FROM_HOME_ASSISTANT"
 HA_SENSOR_ID = "temp_shed"           # Unique ID of this sensor
 HA_SENSOR_NAME = "Shed Thermometer"  # A pretty name for this sensor
 HA_IP = "192.168.178.248:8123"       # IP address (and port) to HomeAssistant
@@ -127,13 +127,20 @@ def reportTemperature(temp):
 # resets the controller. That said, I keep it in because it makes for
 # easier testing with a normal sleep.
 while True:
-    init()
-    led.on()
-    connectWifi(SSID, SSID_KEY)
-    reportTemperature(getTemperature())
-    disconnectWifi()
-    led.off()
-    time.sleep_ms(50)
+    try:
+		init()
+		led.on()
+		connectWifi(SSID, SSID_KEY)
+		reportTemperature(getTemperature())
+		disconnectWifi()
+		led.off()
+		time.sleep_ms(50)
+    except Exception as ex:
+        print("error uploading temp")
+        print(e)
+        time.sleep_ms(1000)
+        led.off()
+        machine.deepsleep(REPORT_INTERVAL_MINUTES * 60 * 1000)
 
     # See:
     #   https://forums.raspberrypi.com/viewtopic.php?t=321044

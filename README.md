@@ -58,14 +58,27 @@ the things you need to set to your own values before writing the program to your
 
 
 # Installing
-1. TODO: Link to official manual detailing how to get MicroPython installed on the board
-2. Write main.py to the controller
-3. Restart the device
+
+1. Install Thonny
+2. Download Pico W firmware at https://www.raspberrypi.com/documentation/microcontrollers/micropython.html#drag-and-drop-micropython  
+   Make sure you get the Pico W version.
+3. Write main.py to the controller
+4. Restart the device
 
 _Notes on changing the code after installing_
 - When the program is running, the on-board LED of the Pico board is lit. If 
   you are using a UI like the recommended Thonny, you can simply halt the 
   program when LED is on and update the program.
+
+
+_Resetting Flash memory_
+1. Download https://datasheets.raspberrypi.com/soft/flash_nuke.uf2
+2. Put it on the Pico after having it booted as storage device (hold down bootsel button)
+3. It will reset -- boot it up as storage device again
+4. Follow the "installing" instructions
+
+# Additional documentation
+https://www.raspberrypi.com/documentation/microcontrollers/micropython.html#what-is-micropython
 
 
 # TODO:
