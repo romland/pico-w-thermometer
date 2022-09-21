@@ -128,13 +128,13 @@ def reportTemperature(temp):
 # easier testing with a normal sleep.
 while True:
     try:
-		init()
-		led.on()
-		connectWifi(SSID, SSID_KEY)
-		reportTemperature(getTemperature())
-		disconnectWifi()
-		led.off()
-		time.sleep_ms(50)
+        init()
+        led.on()
+        connectWifi(SSID, SSID_KEY)
+        reportTemperature(getTemperature())
+        disconnectWifi()
+        led.off()
+        time.sleep_ms(50)
     except Exception as ex:
         print("error uploading temp")
         print(e)
@@ -147,5 +147,5 @@ while True:
     #   https://github.com/micropython/micropython/pull/8832
     #   https://docs.micropython.org/en/latest/esp8266/tutorial/powerctrl.html
     machine.deepsleep(REPORT_INTERVAL_MINUTES * 60 * 1000)  # 15 minutes
-	# For easier testing, comment out the line above and enable the following:
+    # For easier testing, comment out the line above and enable the following:
     # time.sleep_ms(5000)
