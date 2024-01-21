@@ -18,22 +18,23 @@
 #   program when LED is on and update the program.
 #
 #     -- Joakim Romland, 05-Jul-2022
+#                        21-Jan-2024
 #
 
-import urequests, rp2, network, machine, onewire, ds18x20, time
+import urequests, rp2, network, machine, onewire, ds18x20, time, sys
 from machine import Pin, Timer
 
 # Configuration =====================================
-REPORT_INTERVAL_MINUTES = 15         # How often to report to HomeAssistant (HA)
+REPORT_INTERVAL_MINUTES = 5          # How often to report to HomeAssistant (HA)
 WIFI_COUNTRY_ISO_CODE = "NL"         # You will want to change this to US/GB/or what-have-you
-SSID =  "YOUR_SSID"                  # WiFi network name
-SSID_KEY = "YOUR_SECRET"             # WiFi network password
+SSID =  "your wifi network's name"   # WiFi network name
+SSID_KEY = "your wifi network's key" # WiFi network password
 
-# Create a Long-Lived Access Tokens in your HomeAssistant UI (bottom of your profile), paste it below.
-HA_LONG_LIVED_TOKEN = "A_REALLY_LONG_TOKEN_FROM_HOME_ASSISTANT"
+# Create a Long-Lived Access Tokens in your HomeAssistant UI at the bottom of your profile, paste below.
+HA_LONG_LIVED_TOKEN = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 HA_SENSOR_ID = "temp_shed"           # Unique ID of this sensor
 HA_SENSOR_NAME = "Shed Thermometer"  # A pretty name for this sensor
-HA_IP = "192.168.178.248:8123"       # IP address (and port) to HomeAssistant
+HA_IP = "192.168.0.248:8123"         # IP address (and port) to HomeAssistant
 
 # Globals ===========================================
 wlan = None       # network object
@@ -72,17 +73,17 @@ def connectWifi(ssid, password):
         if wlan.status() < 0 or wlan.status() >= 3:
             break
         max_wait -= 1
-        print('connecting to access point...')
+        print('connecting to AP...')
         time.sleep(1)
 
     # Handle connection error
     if wlan.status() != 3:
-        raise RuntimeError('connecting to wifi failed')
+        raise RuntimeError('connecting to AP failed')
     else:
         status = wlan.ifconfig()
         print('connected as ' + status[0])
-
-
+        
+        
 def disconnectWifi():
     wlan.disconnect()
 
@@ -95,7 +96,7 @@ def getTemperature():
     # You can chain these temperature sensors and get multiple objects,
     # in this case, we just care about the first; roms[0].
     temp = ds_sensor.read_temp(roms[0])
-        
+    print("sensor says temp:" + str(temp))
     return temp
 
 
@@ -103,19 +104,23 @@ def getTemperature():
 #   https://www.home-assistant.io/integrations/http/
 def reportTemperature(temp):
     data = {
-        "state": temp,
+        "state": str(temp),
         "attributes" : {
-            "friendly_name" : HA_SENSOR_NAME
+            "friendly_name" : HA_SENSOR_NAME,
+            "unit_of_measurement": "C"
         }
     }
-
+    
+    # NOTE: This is a HTTP/1.0 POST.
+    # SEE: https://github.com/micropython/micropython-lib/blob/a1b9aa934c306a45849faa19d12cffe6bfd89d4c/python-ecosys/urequests/urequests.py
     resp = urequests.post(
         "http://" + HA_IP + "/api/states/sensor." + HA_SENSOR_ID,
         headers={
+            # content-type (JSON) and connection (close) headers are added by urequests
             "Authorization": "Bearer " + HA_LONG_LIVED_TOKEN,
-            "content-type": "application/json",
         },
-        json=data
+        json=data,
+        timeout=10
     )
 
     print("Reported temperature: " + str(temp) + ", result: " + str(resp.content))
@@ -131,21 +136,26 @@ while True:
         init()
         led.on()
         connectWifi(SSID, SSID_KEY)
-        reportTemperature(getTemperature())
+        time.sleep_ms(1000)
+        try:
+            reportTemperature(getTemperature())
+        except Exception as ex:
+            print("Error POSTing, but I think this is due to urequests shortcomings (http/1.0) -- data was PROBABLY posted")
+            sys.print_exception(ex)
         disconnectWifi()
         led.off()
         time.sleep_ms(50)
     except Exception as ex:
-        print("error uploading temp")
-        print(e)
-        time.sleep_ms(1000)
-        led.off()
-        machine.deepsleep(REPORT_INTERVAL_MINUTES * 60 * 1000)
-
+        print("error in mainloop:")
+        sys.print_exception(ex)
+        
+    led.off()
     # See:
     #   https://forums.raspberrypi.com/viewtopic.php?t=321044
     #   https://github.com/micropython/micropython/pull/8832
     #   https://docs.micropython.org/en/latest/esp8266/tutorial/powerctrl.html
-    machine.deepsleep(REPORT_INTERVAL_MINUTES * 60 * 1000)  # 15 minutes
-    # For easier testing, comment out the line above and enable the following:
-    # time.sleep_ms(5000)
+#    machine.deepsleep(REPORT_INTERVAL_MINUTES * 60 * 1000)
+	# For easier testing, comment out the line above and enable the following:
+#    time.sleep_ms(10000)
+    # To test faster deep-sleep wake-ups
+#    machine.deepsleep(10 * 1000)  # 10 sec
